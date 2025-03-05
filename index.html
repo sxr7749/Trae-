@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>经典贪吃蛇游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div id="score">得分：0</div>
+        <button id="restartButton" class="restart-btn">重新开始</button>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="leaderboard">
+            <h3>历史排行榜</h3>
+            <ul id="scoreList"></ul>
+            <button id="clearHistory" class="restart-btn">清除历史记录</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
