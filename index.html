@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 音频元素 -->
+    <audio id="buttonClickSound" src="audio/button-click.mp3" preload="auto"></audio>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日运势占卜</title>
+    <style>
+        /* 音频控制样式 */
+        .audio-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1),
+                      inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1),
+                          inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
+            50% {
+                box-shadow: 0 4px 25px rgba(255, 255, 255, 0.2),
+                          inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+            }
+            100% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1),
+                          inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .audio-controls:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15),
+                      inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+        
+        .music-btn {
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .music-icon {
+            display: inline-block;
+            font-size: 1.5em;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: rotateIcon 6s linear infinite;
+        }
+
+        @keyframes rotateIcon {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .music-btn:hover .music-icon {
+            animation-duration: 3s;
+        }
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .music-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .music-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .music-btn.paused .music-icon {
+            opacity: 0.5;
+        }
+        
+        .volume-slider {
+            width: 90px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .volume-slider:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            position: relative;
+        }
+        
+        /* 背景动效 */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin: 2rem 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            letter-spacing: 5px;
+            padding: 0 1.5rem;
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+        
+        .card-container {
+            perspective: 1000px;
+            width: 200px;
+            height: 300px;
+            cursor: pointer;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* 为三张卡牌设置不同的动画延迟，使它们的悬浮频率交错开 */
+        .card-container[data-index="0"] {
+            animation-delay: 0s;
+        }
+        
+        .card-container[data-index="1"] {
+            animation-delay: 2s;
+        }
+        
+        .card-container[data-index="2"] {
+            animation-delay: 4s;
+        }
+        
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #614385, #516395);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .card-front::after {
+            content: '?';
+            font-size: 5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .fortune-level {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        
+        .fortune-message {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 2.5rem;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .restart-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* 问题输入框样式 */
+        .question-container {
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        
+        .fortune-input {
+            flex: 1;
+            height: 45px;
+            padding: 0 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn {
+            padding: 0 30px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .confirm-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .fortune-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .fortune-input:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.5em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 8px;
+            text-align: center;
+        }
+        
+        /* 历史记录区域 */
+        .history-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .history-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-date {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-right: 1rem;
+            min-width: 150px;
+        }
+        
+        .history-fortune {
+            display: flex;
+            align-items: flex-start;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .history-level {
+            font-weight: bold;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .history-message {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .history-question {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+        
+        .fortune-text {
+            font-size: 0.9rem;
+            flex: 1;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* 白光特效 */
+        .light-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .light-effect.active {
+            animation: lightFlash 2s ease-in-out;
+        }
+        
+        @keyframes lightFlash {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                gap: 1rem;
+            }
+            
+            .card-container {
+                width: 150px;
+                height: 225px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+        }
+        /* 按钮组样式 */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, #20bf55, #01baef);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .share-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* 运势统计样式 */
+        .disclaimer {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 10;
+        }
+
+        .fortune-stats {
+            max-width: 800px;
+            margin: 3rem auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .stats-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="light-effect"></div>
+    <div class="disclaimer">声明：占卜仅供娱乐，请理性分辨</div>
+    <div class="audio-controls">
+        <audio id="bgMusic" loop>
+            <source src="audio/background.mp3" type="audio/mp3">
+        </audio>
+        <button id="musicToggle" class="music-btn">
+            <i class="music-icon">♪</i>
+        </button>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
+    </div>
+
+    <h1 class="title">今日运势占卜</h1>
+    
+    <div class="question-container">
+        <div class="input-group">
+            <input type="text" id="fortune-question" class="fortune-input" placeholder="输入你的量子提问来获取全息宇宙的答案（选填）" maxlength="50">
+            <button id="confirm-question" class="confirm-btn">确认</button>
+        </div>
+        <div class="input-hint">*超灵！心中默念所求之事，为自己或代他人占卜。</div>
+    </div>
+    
+    <div class="container">
+        <div class="card-container" data-index="0">
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back">
+                    <div class="fortune-level"></div>
+                    <div class="fortune-message"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-container" data-index="1">
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back">
+                    <div class="fortune-level"></div>
+                    <div class="fortune-message"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-container" data-index="2">
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back">
+                    <div class="fortune-level"></div>
+                    <div class="fortune-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="button-group">
+        <button class="restart-btn">重新占卜</button>
+        <button class="share-btn" style="display: none;">分享运势</button>
+    </div>
+
+    <div class="fortune-stats">
+        <h2 class="stats-title">运势统计</h2>
+        <div class="stats-container">
+            <canvas id="fortuneChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="history-container" style="display: none;">
+        <h2 class="history-title">历史占卜记录</h2>
+        <div class="history-list"></div>
+    </div>
+    
+    <script>
+        // 确认按钮点击事件
+        document.getElementById('confirm-question').addEventListener('click', function() {
+            const questionInput = document.getElementById('fortune-question');
+            questionInput.disabled = true;
+            questionInput.style.opacity = '0.6';
+            this.style.display = 'none';
+        });
+
+        // 创建星星背景
+        function createStars() {
+            const stars = document.querySelector('.stars');
+            const count = 100;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // 随机位置
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                
+                // 随机大小
+                const size = Math.random() * 3;
+                
+                // 随机动画延迟
+                const delay = Math.random() * 4;
+                
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDelay = `${delay}s`;
+                
+                stars.appendChild(star);
+            }
+        }
+        
+        // 运势等级和对应的卡牌背景
+        const fortuneLevels = [
+            { level: '超吉', color: 'linear-gradient(135deg, #FFD700, #FFA500)', isGood: true },
+            { level: '上吉', color: 'linear-gradient(135deg, #FF8C00, #FF4500)', isGood: true },
+            { level: '吉', color: 'linear-gradient(135deg, #32CD32, #008000)', isGood: true },
+            { level: '平', color: 'linear-gradient(135deg, #87CEEB, #4682B4)', isGood: false },
+            { level: '小凶', color: 'linear-gradient(135deg, #9370DB, #483D8B)', isGood: false },
+            { level: '凶', color: 'linear-gradient(135deg, #800080, #4B0082)', isGood: false }
+        ];
+        
+        // 祝福语
+        const fortuneMessages = {
+            '超吉': [
+                '【财运】今日鸿运当头，财源滚滚而来',
+                '【工作】贵人相助事事顺遂，事业蒸蒸日上',
+                '【财运】惊喜连连好运来，钱财不请自来',
+                '【工作】事业腾飞步步高升，成就非凡',
+                '【财运】财源广进富贵来，横财喜获丰收',
+                '【姻缘】桃花朵朵喜事多，良缘天定',
+                '【工作】贵人扶持前程锦绣，升职加薪在望',
+                '【财运】福星高照运势旺盛，财运亨通',
+                '【学习】万事如意皆顺遂，学业有成',
+                '【财运】金玉满堂财运旺盛，生意兴隆',
+                '【工作】事业有成名利双收，前途无量',
+                '【交友】贵人眷顾前程似锦，广结良缘',
+                '【出行】喜事连连福气至，出行顺遂',
+                '【学习】一帆风顺万事兴，学业进步',
+                '【姻缘】佳运连连喜事来，良缘天成'
+            ],
+            '上吉': [
+                '【工作】事业突破展宏图，前程可期',
+                '【出行】健康平安福寿长，出行顺遂',
+                '【学习】智慧开启思路明，学业有成',
+                '【财运】财运亨通喜事临，财源广进',
+                '【交友】人缘昌盛好运来，贵人相助',
+                '【学习】学业进步成果显，成绩优异',
+                '【工作】心想事成皆如愿，事业顺遂',
+                '【财运】佳音频传好消息，财运亨通',
+                '【交友】贵人相助步步稳，人脉广阔',
+                '【工作】前程似锦步步高，升职加薪',
+                '【财运】财源滚滚好运到，生意兴隆',
+                '【姻缘】桃花灿烂缘分美，良缘天成',
+                '【工作】事业有成展宏图，成就非凡',
+                '【财运】福运亨通喜事来，横财临门',
+                '【交友】贵人相助展鸿图，贵人相助'
+            ],
+            '吉': [
+                '【工作】诸事顺利心想成，前程可期',
+                '【姻缘】桃花运旺遇良缘，缘分美满',
+                '【财运】财运亨通收入增，财源广进',
+                '【工作】事业稳步向前行，稳中有进',
+                '【交友】家庭和睦乐融融，人际和谐',
+                '【学习】学习进步成绩优，知识增长',
+                '【交友】人际关系更和谐，广结善缘',
+                '【出行】身心健康活力足，出行顺遂',
+                '【财运】小财小利喜事来，收益可期',
+                '【工作】事业稳步向上行，前途光明',
+                '【交友】贵人指点有良机，贵人相助',
+                '【出行】平安喜乐福运至，出行平安',
+                '【工作】心想事成皆顺遂，事业有成',
+                '【财运】和气生财好运来，财运亨通',
+                '【姻缘】佳音传来喜事临，良缘天成'
+            ],
+            '平': [
+                '稳中求进方为道',
+                '知足常乐心安宁',
+                '蓄势待发等时机',
+                '平稳前行莫急躁',
+                '修身养性好时节',
+                '淡定从容保平安',
+                '宜静不宜动为佳',
+                '守成待机蓄能量',
+                '平安喜乐过今日',
+                '静待佳音好时机',
+                '平稳前行有收获',
+                '修身养性待春来',
+                '守正持恒保安康',
+                '淡定从容待机遇',
+                '宁静致远保平安'
+            ],
+            '小凶': [
+                '小心谨慎避风险',
+                '退让一步海阔天',
+                '修身养性待机缘',
+                '谨言慎行保平安',
+                '暂时困境终会过',
+                '静待花开春可期',
+                '处事低调避是非',
+                '留心细节防损失',
+                '耐心等待好时机',
+                '谨慎行事避祸端',
+                '退一步想转机至',
+                '静待时机再出发',
+                '处事谨慎保平安',
+                '暂避锋芒待时机',
+                '留心细节防意外'
+            ],
+            '凶': [
+                '破财消财莫强求',
+                '以静制动避是非',
+                '柳暗花明终有时',
+                '谨慎行事避风波',
+                '暂避锋芒韬光养晦',
+                '静心修身渡时艰',
+                '凡事三思而后行',
+                '逢凶化吉有转机',
+                '守正待时保平安',
+                '谨言慎行避祸端',
+                '静待时机再出发',
+                '暂避风头待转机',
+                '修身养性度时艰',
+                '谨慎为上保平安',
+                '守正持恒待春来'
+            ]
+        };
+        
+        // 历史记录数组
+        let fortuneHistory = [];
+        
+        // 运势统计数据
+        let fortuneStats = {
+            '超吉': 0,
+            '上吉': 0,
+            '吉': 0,
+            '平': 0,
+            '小凶': 0,
+            '凶': 0
+        };
+        
+        // 更新运势统计
+        function updateFortuneStats() {
+            fortuneStats = {
+                '超吉': 0,
+                '上吉': 0,
+                '吉': 0,
+                '平': 0,
+                '小凶': 0,
+                '凶': 0
+            };
+            
+            fortuneHistory.forEach(item => {
+                fortuneStats[item.level]++;
+            });
+            
+            updateFortuneChart();
+        }
+        
+        // 更新运势图表
+        function updateFortuneChart() {
+            const ctx = document.getElementById('fortuneChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(fortuneStats),
+                    datasets: [{
+                        label: '运势分布',
+                        data: Object.values(fortuneStats),
+                        backgroundColor: [
+                            'rgba(255, 215, 0, 0.6)',
+                            'rgba(255, 140, 0, 0.6)',
+                            'rgba(50, 205, 50, 0.6)',
+                            'rgba(135, 206, 235, 0.6)',
+                            'rgba(147, 112, 219, 0.6)',
+                            'rgba(128, 0, 128, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 215, 0, 1)',
+                            'rgba(255, 140, 0, 1)',
+                            'rgba(50, 205, 50, 1)',
+                            'rgba(135, 206, 235, 1)',
+                            'rgba(147, 112, 219, 1)',
+                            'rgba(128, 0, 128, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 发疯文学短语库
+        const crazyPhrases = {
+            '吉': [
+                "今天我是手气王，承让了诸位！",
+                "我不是随便的人，但我随便起来不是人",
+                "扫地只不过是我的表面工作，我真正的身份是一位研究僧（生）",
+                "打打杀杀，你找别人吧，我受过高等教育的",
+                "打人都没力气，还说是黑社会？",
+                "我一秒钟几十万上下，我会和你去踢球？",
+                "实不相瞒，小弟我亦是玉树临风胜潘安，一树梨花压海棠",
+                "我是西厂督主雨化田，够不够资格和你聊聊？"
+            ],
+            '平': [
+                "生活就像一盒巧克力，你永远不知道下一颗是什么味道。",
+                "我本是男儿郎，又不是女娇娥！",
+                "别以为你长得帅我就不打你。",
+                "你有科学，我有神功。",
+                "人生没有彩排，每一天都是现场直播。",
+                "幸运女神在微笑，一切尽在卡牌之中！"
+            ],
+            '凶': [
+                "天命人，就决定是你了！",
+                "我已经在很努力地笑了，可眼泪还是止不住。",
+                "做人如果没梦想，那跟咸鱼有什么分别？",
+                "你这是在玩火！",
+                "地主家也没有余粮啊！",
+                "别紧张，我不是什么好人！",
+                "要不是椅子挡住我的腿，我未必打不过你。",
+                "别人笑我太疯癫，我笑他人看不穿。不见五陵豪杰墓，无花无酒锄作田。",
+                "有钱真的能为所欲为。"
+            ]
+        };
+        
+        // emoji表情库
+        const emojis = [
+            "✨", "🌟", "⭐", "🌈", "🎉", "🎊", "🎵", "🎶", "💫", "🌙",
+            "☀️", "🌺", "🌸", "🍀", "💝", "💖", "💕", "💓", "💗", "💘"
+        ];
+
+        // 分享运势
+        function shareFortuneResult(level, message, question) {
+            // 根据运势等级选择对应的短语库
+            let phrases;
+            if (level.includes('吉')) {
+                phrases = crazyPhrases['吉'];
+            } else if (level === '平') {
+                phrases = crazyPhrases['平'];
+            } else {
+                phrases = crazyPhrases['凶'];
+            }
+            
+            // 随机选择一条短语
+            const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+            
+            // 随机选择3-5个emoji
+            const emojiCount = Math.floor(Math.random() * 3) + 3; // 生成3-5的随机数
+            const selectedEmojis = [];
+            for (let i = 0; i < emojiCount; i++) {
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                selectedEmojis.push(randomEmoji);
+            }
+            
+            const shareText = `今日运势占卜 ${selectedEmojis[0]}
+    - 问题：${question} ${selectedEmojis[1]}
+    - 运势：${level} ${selectedEmojis[2]}
+    ${message}
+
+    体验链接：https://sxr7749.github.io/Trae-/
+    发疯文学：${randomPhrase} ${selectedEmojis[3] || ''}`;
+
+            // 复制文本到剪贴板
+            navigator.clipboard.writeText(shareText)
+                .then(() => alert('已复制到剪贴板'))
+                .catch(() => alert('复制失败，请手动复制'));
+        }
+        
+        // 保存历史记录到本地存储
+        function saveHistory() {
+            localStorage.setItem('fortuneHistory', JSON.stringify(fortuneHistory));
+        }
+        
+        // 从本地存储加载历史记录
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('fortuneHistory');
+            if (savedHistory) {
+                fortuneHistory = JSON.parse(savedHistory);
+                updateHistoryDisplay();
+            }
+        }
+        
+        // 更新历史记录显示
+        function updateHistoryDisplay() {
+            const historyList = document.querySelector('.history-list');
+            const historyContainer = document.querySelector('.history-container');
+            
+            // 如果有历史记录，显示历史记录区域
+            if (fortuneHistory.length > 0) {
+                historyContainer.style.display = 'block';
+                
+                // 清空当前显示
+                historyList.innerHTML = '';
+                
+                // 添加历史记录项
+                fortuneHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('history-item');
+                    
+                    const historyDate = document.createElement('div');
+                    historyDate.classList.add('history-date');
+                    historyDate.textContent = item.date;
+                    
+                    const historyFortune = document.createElement('div');
+                    historyFortune.classList.add('history-fortune');
+                    
+                    const historyLevel = document.createElement('div');
+                    historyLevel.classList.add('history-level');
+                    historyLevel.textContent = item.level;
+                    historyLevel.style.background = item.color;
+                    
+                    const historyMessage = document.createElement('div');
+                    historyMessage.classList.add('history-message');
+                    historyMessage.innerHTML = `<div class="history-question">${item.question}</div><div class="fortune-text">${item.message}</div>`;
+                    
+                    historyFortune.appendChild(historyLevel);
+                    historyFortune.appendChild(historyMessage);
+                    
+                    historyItem.appendChild(historyDate);
+                    historyItem.appendChild(historyFortune);
+                    
+                    historyList.appendChild(historyItem);
+                });
+            } else {
+                historyContainer.style.display = 'none';
+            }
+        }
+        
+        // 添加新的历史记录
+        function addHistory(fortune, message, color) {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            const question = document.getElementById('fortune-question').value;
+            fortuneHistory.unshift({
+                date: dateStr,
+                level: fortune,
+                message: message,
+                color: color,
+                question: question || '无具体问题'
+            });
+            
+            // 限制历史记录数量，最多保存10条
+            if (fortuneHistory.length > 10) {
+                fortuneHistory.pop();
+            }
+            
+            saveHistory();
+            updateHistoryDisplay();
+        }
+        
+        // 分析问题内容，返回匹配的运势类型
+        function analyzeQuestion(question) {
+            if (!question) return null;
+            
+            const keywords = {
+                '财运': {
+                    direct: ['钱', '财', '生意', '投资', '理财', '工资', '收入', '创业', '彩票', '基金', '股票', '发财', '赚钱', '经济', '商业', '盈利', '资金', '买卖', '生意', '店铺', '店面', '商店', '市场', '行情'],
+                    context: ['买房', '买车', '负债', '贷款', '存款', '报销', '奖金', '薪资', '资产', '债务', '消费', '储蓄', '保险', '房贷', '车贷', '投入', '回报', '收益', '分红', '利润', '成本', '开销', '支出', '收支']
+                },
+                '工作': {
+                    direct: ['工作', '事业', '职场', '升职', '加薪', '面试', '跳槽', '职业', '考核', '晋升', '项目', '业务', '公司', '老板', '创业', '就业', '求职', '应聘', '岗位', '职务', '职称', '工程', '管理'],
+                    context: ['同事', '客户', '上司', '下属', '团队', '办公室', '岗位', '职位', '简历', '入职', '离职', '加班', '述职', '工作环境', '工作氛围', '工作压力', '工作强度', '工作时间', '工作地点', '工作内容', '工作关系']
+                },
+                '姻缘': {
+                    direct: ['爱情', '婚姻', '恋爱', '桃花', '感情', '表白', '相亲', '缘分', '脱单', '追求', '暧昧', '约会', '男朋友', '女朋友', '结婚', '婚恋', '情侣', '夫妻', '爱人', '伴侣', '对象', '恋人'],
+                    context: ['异性', '伴侣', '对象', '恋人', '前任', '分手', '复合', '婚礼', '求婚', '恋情', '告白', '喜欢', '心动', '婚期', '婚房', '婚车', '婚纱', '钻戒', '彩礼', '嫁妆', '闪婚', '奉子成婚', '二婚', '离异']
+                },
+                '学习': {
+                    direct: ['学习', '考试', '成绩', '论文', '毕业', '升学', '考研', '考证', '学校', '课程', '作业', '成绩', '学位', '专业', '学历', '教育', '培训', '进修', '深造', '学科', '课题', '研究', '学术'],
+                    context: ['复习', '考场', '笔试', '面试', '教授', '老师', '同学', '实验', '实习', '答辩', '奖学金', '竞赛', '比赛', '考场', '考点', '考题', '试卷', '分数', '成绩单', '录取', '保研', '考博', '留学']
+                },
+                '交友': {
+                    direct: ['朋友', '人际', '关系', '社交', '合作', '沟通', '团队', '伙伴', '友谊', '同事', '同学', '人脉', '交际', '相处', '友情', '友谊', '交往', '社群', '圈子', '朋友圈'],
+                    context: ['聚会', '聚餐', '联系', '见面', '约见', '拜访', '聊天', '沟通', '矛盾', '误会', '和解', '信任', '理解', '社交圈', '社交平台', '社交软件', '社交媒体', '社交活动', '社交能力', '社交障碍']
+                },
+                '出行': {
+                    direct: ['旅行', '出行', '旅游', '出差', '搬家', '交通', '远行', '迁移', '旅程', '路途', '机票', '签证', '行程', '度假', '旅途', '旅程', '行程', '路线', '路程', '航班', '航线'],
+                    context: ['景点', '酒店', '航班', '车票', '护照', '行李', '攻略', '目的地', '路线', '交通', '天气', '住宿', '预订', '机场', '车站', '港口', '码头', '高铁', '动车', '飞机', '轮船', '邮轮', '自驾', '跟团']
+                }
+            };
+            
+            // 分析上下文和意图
+            function analyzeContext(question, type) {
+                const words = question.split(/[\s,，.。!！?？]/); // 分词处理
+                let contextScore = 0;
+                let intentScore = 0;
+                
+                // 上下文匹配
+                keywords[type].context.forEach(keyword => {
+                    if (question.includes(keyword)) {
+                        contextScore += 0.5;
+                    }
+                });
+                
+                // 意图分析
+                const intentPatterns = {
+                    '询问': ['会不会', '能不能', '可以吗', '如何', '怎么样'],
+                    '担忧': ['担心', '害怕', '焦虑', '困扰', '纠结'],
+                    '期待': ['希望', '期待', '盼望', '想要', '渴望'],
+                    '困惑': ['迷茫', '困惑', '不知道', '疑惑', '犹豫']
+                };
+                
+                for (let intent in intentPatterns) {
+                    intentPatterns[intent].forEach(pattern => {
+                        if (question.includes(pattern)) {
+                            intentScore += 0.3;
+                        }
+                    });
+                }
+                
+                return { contextScore, intentScore };
+            }
+            
+            // 计算每个类型的匹配分数
+            let matchResults = [];
+            
+            for (let type in keywords) {
+                let directScore = 0;
+                let matchedKeywords = [];
+                
+                // 直接关键词匹配（增加词频和位置权重）
+                keywords[type].direct.forEach(keyword => {
+                    const regex = new RegExp(keyword, 'g');
+                    const matches = question.match(regex);
+                    if (matches) {
+                        // 考虑词频
+                        const frequency = matches.length;
+                        // 考虑关键词长度
+                        const lengthWeight = keyword.length >= 2 ? 1.2 : 1;
+                        // 考虑关键词位置
+                        const position = question.indexOf(keyword);
+                        const positionWeight = position <= 5 ? 1.2 : (position >= question.length - keyword.length - 5 ? 1.1 : 1);
+                        
+                        directScore += frequency * lengthWeight * positionWeight;
+                        matchedKeywords.push(keyword);
+                    }
+                });
+                
+                // 增强的语义相似度计算
+                const similarity = matchedKeywords.length > 0 ? 
+                    matchedKeywords.reduce((acc, keyword) => {
+                        const keywordLength = keyword.length;
+                        const occurrences = (question.match(new RegExp(keyword, 'g')) || []).length;
+                        return acc + (keywordLength * occurrences / question.length);
+                    }, 0) : 0;
+                
+                // 分析上下文和意图
+                const { contextScore, intentScore } = analyzeContext(question, type);
+                
+                // 优化的综合评分计算
+                const totalScore = (
+                    directScore * 0.35 +      // 直接关键词匹配权重
+                    similarity * 0.25 +        // 语义相似度权重
+                    contextScore * 0.25 +      // 上下文相关性权重
+                    intentScore * 0.15         // 意图强度权重
+                );
+                
+                matchResults.push({
+                    type,
+                    directScore,
+                    similarity,
+                    contextScore,
+                    intentScore,
+                    totalScore
+                });
+            }
+            
+            // 按综合评分排序
+            matchResults.sort((a, b) => b.totalScore - a.totalScore);
+            
+            // 创建备选池（提高阈值以确保更精确的匹配）
+            const threshold = 0.4;
+            const candidatePool = matchResults.filter(result => result.totalScore >= threshold);
+            
+            // 如果备选池为空，返回null；否则返回最佳匹配
+            return candidatePool.length > 0 ? candidatePool[0].type : null;
+        }
+        
+        // 初始化卡牌
+        function initCards() {
+            const cards = document.querySelectorAll('.card-container');
+            let canFlip = true;
+            const question = document.getElementById('fortune-question').value;
+            const questionType = analyzeQuestion(question);
+            
+            // 预处理每个运势等级的消息池
+            const messagePool = {};
+            fortuneLevels.forEach(fortune => {
+                messagePool[fortune.level] = {
+                    typed: {},
+                    general: []
+                };
+                
+                fortuneMessages[fortune.level].forEach(msg => {
+                    const typeMatch = msg.match(/【(.+?)】/);
+                    if (typeMatch) {
+                        const type = typeMatch[1];
+                        if (!messagePool[fortune.level].typed[type]) {
+                            messagePool[fortune.level].typed[type] = [];
+                        }
+                        messagePool[fortune.level].typed[type].push(msg);
+                    } else {
+                        messagePool[fortune.level].general.push(msg);
+                    }
+                });
+            });
+            
+            cards.forEach(cardContainer => {
+                const card = cardContainer.querySelector('.card');
+                const cardBack = card.querySelector('.card-back');
+                const fortuneLevel = cardBack.querySelector('.fortune-level');
+                const fortuneMessage = cardBack.querySelector('.fortune-message');
+                
+                // 随机分配运势等级
+                const randomFortune = fortuneLevels[Math.floor(Math.random() * fortuneLevels.length)];
+                let selectedMessage;
+                
+                if (questionType) {
+                    const typeMessages = messagePool[randomFortune.level].typed[questionType] || [];
+                    
+                    if (typeMessages.length > 0) {
+                        // 优先使用完全匹配的类型消息
+                        selectedMessage = typeMessages[Math.floor(Math.random() * typeMessages.length)];
+                    } else {
+                        // 如果没有完全匹配的消息，尝试从相关类型中选择
+                        const relatedTypes = getRelatedTypes(questionType);
+                        const relatedMessages = relatedTypes.reduce((acc, type) => {
+                            return acc.concat(messagePool[randomFortune.level].typed[type] || []);
+                        }, []);
+                        
+                        if (relatedMessages.length > 0) {
+                            // 使用相关类型的消息
+                            selectedMessage = relatedMessages[Math.floor(Math.random() * relatedMessages.length)];
+                        } else {
+                            // 如果没有相关类型的消息，使用通用消息
+                            selectedMessage = messagePool[randomFortune.level].general.length > 0 ?
+                                messagePool[randomFortune.level].general[Math.floor(Math.random() * messagePool[randomFortune.level].general.length)] :
+                                fortuneMessages[randomFortune.level][Math.floor(Math.random() * fortuneMessages[randomFortune.level].length)];
+                        }
+                    }
+                } else {
+                    // 如果没有识别出类型，随机选择消息
+                    selectedMessage = fortuneMessages[randomFortune.level][Math.floor(Math.random() * fortuneMessages[randomFortune.level].length)];
+                }
+                
+                // 设置运势和祝福语
+                fortuneLevel.textContent = randomFortune.level;
+                fortuneMessage.textContent = selectedMessage;
+                
+                // 设置卡牌背景
+                cardBack.style.background = randomFortune.color;
+                
+                // 点击翻转事件处理
+                cardContainer.addEventListener('click', function() {
+                    if (canFlip && !card.classList.contains('flipped')) {
+                        const cardFlipAudio = new Audio('audio/card-flip.mp3');
+                        cardFlipAudio.volume = 0.5;
+                        cardFlipAudio.play();
+                        card.classList.add('flipped');
+                        canFlip = false;
+                        
+                        const questionInput = document.getElementById('fortune-question');
+                        const confirmBtn = document.getElementById('confirm-question');
+                        questionInput.disabled = true;
+                        questionInput.style.opacity = '0.6';
+                        confirmBtn.style.display = 'none';
+                        
+                        addHistory(randomFortune.level, selectedMessage, randomFortune.color);
+                        
+                        const shareBtn = document.querySelector('.share-btn');
+                        shareBtn.style.display = 'block';
+                        shareBtn.onclick = () => {
+                            const question = document.getElementById('fortune-question').value || '无具体问题';
+                            shareFortuneResult(randomFortune.level, selectedMessage, question);
+                        };
+                        
+                        if (randomFortune.isGood) {
+                            setTimeout(() => {
+                                const lightEffect = document.querySelector('.light-effect');
+                                lightEffect.classList.add('active');
+                                
+                                setTimeout(() => {
+                                    lightEffect.classList.remove('active');
+                                }, 2000);
+                            }, 300);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // 重新开始
+        document.querySelector('.restart-btn').addEventListener('click', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.classList.remove('flipped');
+            });
+            
+            // 重置问题输入框状态
+            const questionInput = document.getElementById('fortune-question');
+            const confirmBtn = document.getElementById('confirm-question');
+            questionInput.disabled = false;
+            questionInput.style.opacity = '1';
+            questionInput.value = '';
+            confirmBtn.style.display = 'block';
+            
+            // 隐藏分享按钮
+            document.querySelector('.share-btn').style.display = 'none';
+            
+            setTimeout(() => {
+                initCards();
+            }, 500);
+        });
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            // 添加按钮点击音效
+            function playButtonClickSound() {
+                const sound = document.getElementById('buttonClickSound');
+                sound.currentTime = 0;
+                sound.play();
+            }
+
+            // 为所有按钮添加点击音效
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', playButtonClickSound);
+            });
+
+            // 移除卡片点击音效，避免与翻牌音效重叠
+            createStars();
+
+        // 音频控制
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        // 设置初始音量
+        bgMusic.volume = volumeSlider.value / 100;
+
+        // 播放/暂停控制
+        musicToggle.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicToggle.classList.remove('paused');
+            } else {
+                bgMusic.pause();
+                musicToggle.classList.add('paused');
+            }
+        });
+
+        // 音量控制
+        volumeSlider.addEventListener('input', (e) => {
+            bgMusic.volume = e.target.value / 100;
+        });
+
+        // 页面加载时自动播放
+        window.addEventListener('load', () => {
+            bgMusic.play().catch(() => {
+                // 自动播放被阻止时，显示暂停状态
+                musicToggle.classList.add('paused');
+            });
+        });
+            initCards();
+            loadHistory(); // 加载历史记录
+            updateFortuneStats(); // 更新运势统计
+        });
+    </script>
+</body>
+</html>
